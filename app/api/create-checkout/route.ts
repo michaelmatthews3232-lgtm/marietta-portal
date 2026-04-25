@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { stripe, SETUP_FEE_PRICE_ID, MONTHLY_PRICE_ID } from '../../../lib/stripe'
+import { stripe, SETUP_FEE_PRICE_ID } from '../../../lib/stripe'
 import { getClientBySlug } from '../../../lib/db'
 
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL!
@@ -15,17 +15,15 @@ export async function POST(req: NextRequest) {
 
     const portalUrl = process.env.NEXT_PUBLIC_PORTAL_URL || 'https://mariettawebsites.vercel.app'
 
-    // Reuse existing Stripe customer or create a new one
+    // Reuse existing Stripe customer or create one
     let customerId: string = (record as Record<string, unknown>).stripe_customer_id as string
     if (!customerId) {
       const customer = await stripe.customers.create({
-        email:    record.email    || undefined,
+        email:    record.email        || undefined,
         name:     record.business_name || undefined,
         metadata: { slug },
       })
       customerId = customer.id
-
-      // Save customer ID to DB immediately
       await fetch(`${SUPABASE_URL}/rest/v1/clients?slug=eq.${encodeURIComponent(slug)}`, {
         method: 'PATCH',
         headers: {
@@ -36,21 +34,24 @@ export async function POST(req: NextRequest) {
       })
     }
 
-    // Attach setup fee as a pending invoice item — Stripe will include it in the first subscription invoice
-    await stripe.invoiceItems.create({
-      customer: customerId,
-      price:    SETUP_FEE_PRICE_ID,
-    })
-
-    // Create subscription checkout — first invoice will be $150 ($100 setup + $50 month), then $50/mo
+    // mode: 'payment' lets us show both line items clearly ($100 setup + $50 first month = $150 today)
+    // The webhook will create the $50/month subscription after this payment succeeds
     const session = await stripe.checkout.sessions.create({
-      mode:     'subscription',
+      mode:     'payment',
       customer: customerId,
       line_items: [
-        { price: MONTHLY_PRICE_ID, quantity: 1 },
+        { price: SETUP_FEE_PRICE_ID, quantity: 1 },
+        {
+          price_data: {
+            currency:     'usd',
+            product_data: { name: 'Monthly Website Maintenance — Month 1' },
+            unit_amount:  5000,
+          },
+          quantity: 1,
+        },
       ],
-      subscription_data: { metadata: { slug } },
-      metadata: { slug },
+      metadata: { slug, firstPayment: 'true' },
+      payment_intent_data: { metadata: { slug, firstPayment: 'true' } },
       success_url: `${portalUrl}/admin?payment=success&client=${slug}`,
       cancel_url:  `${portalUrl}/admin`,
     })
