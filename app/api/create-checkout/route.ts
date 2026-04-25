@@ -15,15 +15,11 @@ export async function POST(req: NextRequest) {
     const session = await stripe.checkout.sessions.create({
       mode: 'subscription',
       customer_email: record.email || undefined,
-      subscription_data: {
-        add_invoice_items: [
-          { price: SETUP_FEE_PRICE_ID, quantity: 1 },
-        ],
-        metadata: { slug },
-      },
       line_items: [
-        { price: MONTHLY_PRICE_ID, quantity: 1 },
+        { price: SETUP_FEE_PRICE_ID, quantity: 1 },
+        { price: MONTHLY_PRICE_ID,   quantity: 1 },
       ],
+      subscription_data: { metadata: { slug } },
       metadata: { slug },
       success_url: `${portalUrl}/admin?payment=success&client=${slug}`,
       cancel_url:  `${portalUrl}/admin`,
