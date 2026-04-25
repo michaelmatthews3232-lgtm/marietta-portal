@@ -274,10 +274,11 @@ export default function AdminPage() {
     setGeneratingLink(null)
     if (data.url) {
       setPaymentLink(x => ({ ...x, [slug]: data.url }))
-      window.open(data.url, '_blank')
+      navigator.clipboard.writeText(data.url).catch(() => {})
+      setFeedback(f => ({ ...f, [slug]: `✓ Payment link copied to clipboard` }))
     } else {
       setPaymentLink(x => { const n = { ...x }; delete n[slug]; return n })
-      alert(`Payment link error: ${data.error}`)
+      setFeedback(f => ({ ...f, [slug]: `Payment link error: ${data.error}` }))
     }
   }
 
@@ -495,6 +496,11 @@ export default function AdminPage() {
                     )}
                     <span style={s.addedDate}>Added {new Date(client.onboardedAt).toLocaleDateString()}</span>
                     {client.referredBy && <span style={s.addedDate}>Referred by: {client.referredBy}</span>}
+                    {feedback[client.slug] && !isOpen && (
+                      <span style={{ fontSize: '0.8rem', fontWeight: 500, color: feedback[client.slug].startsWith('Payment link error') || feedback[client.slug].startsWith('Error') ? '#ef4444' : '#166534' }}>
+                        {feedback[client.slug]}
+                      </span>
+                    )}
                   </div>
 
                   {isOpen && (
