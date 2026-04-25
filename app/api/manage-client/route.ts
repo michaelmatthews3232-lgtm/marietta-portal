@@ -1,9 +1,11 @@
 /**
  * PATCH /api/manage-client
- * Handles: status change, client email update, domain assignment
+ * Handles: status change, client email update, domain assignment, hero image override
  */
 
 import { NextRequest, NextResponse } from 'next/server'
+import { renderSiteHtml, getTemplateCss, buildTemplateData } from '../../../lib/builder'
+import { deployToNetlify } from '../../../lib/netlify'
 
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL!
 const SERVICE_KEY  = process.env.SUPABASE_SERVICE_ROLE_KEY!
@@ -82,6 +84,23 @@ export async function PATCH(req: NextRequest) {
         await dbPatch(slug, { netlify_url: finalUrl })
 
         return NextResponse.json({ success: true, url: finalUrl, netlify: netlifyData })
+      }
+
+      case 'set_hero': {
+        const record = await dbGet(slug, 'ai_content,lead_data,netlify_site_id,template_name')
+        if (!record) return NextResponse.json({ error: 'Client not found' }, { status: 404 })
+
+        const updatedAiContent = { ...(record.ai_content || {}), heroImageUrl: value }
+        const templateData = buildTemplateData(updatedAiContent, record.lead_data || {})
+        const html = renderSiteHtml(record.template_name, templateData)
+        const css  = getTemplateCss(record.template_name)
+
+        await deployToNetlify(record.netlify_site_id, {
+          '/index.html': Buffer.from(html, 'utf8'),
+          '/style.css':  Buffer.from(css,  'utf8'),
+        })
+        await dbPatch(slug, { ai_content: updatedAiContent })
+        return NextResponse.json({ success: true })
       }
 
       default:

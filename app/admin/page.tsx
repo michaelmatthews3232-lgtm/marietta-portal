@@ -19,6 +19,26 @@ interface Lead {
   hours: string[]; googleUrl: string; summary: string | null; category: string
 }
 
+const HERO_IMAGE_PRESETS = [
+  { label: 'Hair Salon',        url: 'https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?w=1600&q=80' },
+  { label: 'Nail Salon',        url: 'https://images.unsplash.com/photo-1604654894610-df63bc536371?w=1600&q=80' },
+  { label: 'Spa / Beauty',      url: 'https://images.unsplash.com/photo-1540555700478-4be289fbecef?w=1600&q=80' },
+  { label: 'Florist',           url: 'https://images.unsplash.com/photo-1487530811015-780c2e8e27b7?w=1600&q=80' },
+  { label: 'Gym / Fitness',     url: 'https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=1600&q=80' },
+  { label: 'Restaurant',        url: 'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=1600&q=80' },
+  { label: 'Cafe / Coffee',     url: 'https://images.unsplash.com/photo-1501339847302-ac426a4a7cbb?w=1600&q=80' },
+  { label: 'Bakery',            url: 'https://images.unsplash.com/photo-1555507036-ab1f4038808a?w=1600&q=80' },
+  { label: 'Bar',               url: 'https://images.unsplash.com/photo-1566417713940-fe7c737a9ef2?w=1600&q=80' },
+  { label: 'Plumber',           url: 'https://images.unsplash.com/photo-1603796846097-bee99e4a601f?w=1600&q=80' },
+  { label: 'Electrician',       url: 'https://images.unsplash.com/photo-1621905251918-48416bd8575a?w=1600&q=80' },
+  { label: 'Contractor',        url: 'https://images.unsplash.com/photo-1504307651254-35680f356dfd?w=1600&q=80' },
+  { label: 'Painter',           url: 'https://images.unsplash.com/photo-1589939705384-5185137a7f0f?w=1600&q=80' },
+  { label: 'Roofing',           url: 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=1600&q=80' },
+  { label: 'Laundry / Dry Cleaning', url: 'https://images.unsplash.com/photo-1545173168-9f1947eebb7f?w=1600&q=80' },
+  { label: 'Auto Repair',       url: 'https://images.unsplash.com/photo-1486262715619-67b85e0b08d3?w=1600&q=80' },
+  { label: 'Dentist',           url: 'https://images.unsplash.com/photo-1606811841689-23dfddce3e95?w=1600&q=80' },
+]
+
 const STATUS_OPTIONS = ['pending', 'contacted', 'paid', 'active', 'not_interested']
 const STATUS_LABELS: Record<string, string> = {
   pending:        'New Lead',
@@ -84,6 +104,8 @@ export default function AdminPage() {
   const [building, setBuilding]         = useState<string | null>(null)
   const [buildFeedback, setBuildFeedback] = useState<Record<string, string>>({})
   const [adminEmail, setAdminEmail]     = useState('')
+  const [showArchived, setShowArchived] = useState(false)
+  const [heroInputs, setHeroInputs]     = useState<Record<string, string>>({})
 
   useEffect(() => {
     supabase.auth.getUser().then(({ data }) => {
@@ -155,13 +177,24 @@ export default function AdminPage() {
     router.push('/login')
   }
 
-  const filtered = clients.filter(c =>
-    c.name?.toLowerCase().includes(search.toLowerCase()) ||
-    c.address?.toLowerCase().includes(search.toLowerCase())
+  const isNotInterested = (c: Client) => c.status === 'not_interested' || c.status === 'cancelled'
+
+  const activeFiltered = clients.filter(c =>
+    !isNotInterested(c) && (
+      c.name?.toLowerCase().includes(search.toLowerCase()) ||
+      c.address?.toLowerCase().includes(search.toLowerCase())
+    )
+  )
+
+  const archivedFiltered = clients.filter(c =>
+    isNotInterested(c) && (
+      c.name?.toLowerCase().includes(search.toLowerCase()) ||
+      c.address?.toLowerCase().includes(search.toLowerCase())
+    )
   )
 
   const stats = {
-    total:      clients.length,
+    total:      clients.filter(c => !isNotInterested(c)).length,
     newLeads:   clients.filter(c => c.status === 'pending' || c.status === 'new_lead').length,
     contacted:  clients.filter(c => c.status === 'contacted').length,
     converted:  clients.filter(c => c.status === 'paid' || c.status === 'active').length,
@@ -275,11 +308,11 @@ export default function AdminPage() {
           onChange={e => setSearch(e.target.value)} style={s.search} />
 
         {/* Client List */}
-        {loading ? <div style={s.empty}>Loading...</div> : filtered.length === 0 ? (
+        {loading ? <div style={s.empty}>Loading...</div> : activeFiltered.length === 0 && archivedFiltered.length === 0 ? (
           <div style={s.empty}>No clients yet. Use "Find New Leads" to get started.</div>
         ) : (
           <div style={s.list}>
-            {filtered.map(client => {
+            {activeFiltered.map(client => {
               const isOpen = expanded === client.slug
               const sc = STATUS_COLORS[client.status] || STATUS_COLORS.pending
               const isSaving = saving?.startsWith(client.slug)
@@ -385,6 +418,43 @@ export default function AdminPage() {
                         </div>
                       </div>
 
+                      {/* Hero Image */}
+                      <div style={s.section}>
+                        <h3 style={s.sectionTitle}>Hero Image</h3>
+                        <p style={s.sectionDesc}>Pick a preset or paste any image URL. Saves and rebuilds the site instantly.</p>
+                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginBottom: 12 }}>
+                          {HERO_IMAGE_PRESETS.map(p => (
+                            <button key={p.url}
+                              onClick={() => setHeroInputs(x => ({ ...x, [client.slug]: p.url }))}
+                              style={{
+                                padding: '5px 12px', fontSize: '0.78rem', borderRadius: 6, cursor: 'pointer',
+                                border: heroInputs[client.slug] === p.url ? '2px solid #c8913a' : '1px solid #e5e7eb',
+                                background: heroInputs[client.slug] === p.url ? '#fff7ed' : '#f9fafb',
+                                color: heroInputs[client.slug] === p.url ? '#c8913a' : '#374151',
+                                fontWeight: heroInputs[client.slug] === p.url ? 700 : 400,
+                              }}>
+                              {p.label}
+                            </button>
+                          ))}
+                        </div>
+                        <div style={s.inputRow}>
+                          <input type="text" placeholder="Or paste a custom image URL…"
+                            value={heroInputs[client.slug] ?? ''}
+                            onChange={e => setHeroInputs(x => ({ ...x, [client.slug]: e.target.value }))}
+                            style={s.input} />
+                          <button
+                            onClick={() => manage(client.slug, 'set_hero', heroInputs[client.slug] ?? '')}
+                            disabled={isSaving || !heroInputs[client.slug]?.trim()}
+                            style={{ ...s.actionBtn, opacity: (!heroInputs[client.slug]?.trim() || isSaving) ? 0.5 : 1 }}>
+                            {saving === `${client.slug}-set_hero` ? 'Rebuilding…' : 'Apply & Rebuild'}
+                          </button>
+                        </div>
+                        {heroInputs[client.slug] && (
+                          <img src={heroInputs[client.slug]} alt="preview"
+                            style={{ marginTop: 10, width: '100%', height: 120, objectFit: 'cover', borderRadius: 8, border: '1px solid #e5e7eb' }} />
+                        )}
+                      </div>
+
                       {/* Google Visibility */}
                       <div style={s.section}>
                         <h3 style={s.sectionTitle}>Google Visibility</h3>
@@ -414,6 +484,67 @@ export default function AdminPage() {
                 </div>
               )
             })}
+
+            {/* Not Interested Archive */}
+            {archivedFiltered.length > 0 && (
+              <div style={{ marginTop: 24 }}>
+                <button
+                  onClick={() => setShowArchived(v => !v)}
+                  style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#9ca3af', fontSize: '0.85rem', fontWeight: 600, padding: '8px 0', display: 'flex', alignItems: 'center', gap: 8 }}>
+                  {showArchived ? '▲' : '▼'} Not Interested ({archivedFiltered.length}) — click to {showArchived ? 'hide' : 'view'}
+                </button>
+                {showArchived && (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 12, marginTop: 10, opacity: 0.7 }}>
+                    {archivedFiltered.map(client => {
+                      const isOpen = expanded === client.slug
+                      const sc = STATUS_COLORS[client.status] || STATUS_COLORS.not_interested
+                      const isSaving = saving?.startsWith(client.slug)
+                      return (
+                        <div key={client.slug} style={{ ...s.clientCard, borderColor: '#e5e7eb' }}>
+                          <div style={s.clientRow} onClick={() => setExpanded(isOpen ? null : client.slug)}>
+                            <div style={s.clientInfo}>
+                              <span style={{ ...s.badge, background: sc.bg, color: sc.color }}>{STATUS_LABELS[client.status] || client.status}</span>
+                              <p style={s.clientName}>{client.name}</p>
+                              <p style={s.clientAddr}>{client.address}</p>
+                            </div>
+                            <div style={s.quickActions}>
+                              <a href={client.netlifyUrl} target="_blank" rel="noopener" style={s.liveBtn}>View Site ↗</a>
+                              <span style={s.addedDate}>Added {new Date(client.onboardedAt).toLocaleDateString()}</span>
+                            </div>
+                          </div>
+                          {isOpen && (
+                            <div style={s.expandedPanel}>
+                              <div style={s.section}>
+                                <h3 style={s.sectionTitle}>Move Back to Pipeline</h3>
+                                <div style={s.statusBtns}>
+                                  {(['pending', 'contacted'] as const).map(st => {
+                                    const c = STATUS_COLORS[st]
+                                    return (
+                                      <button key={st}
+                                        onClick={() => manage(client.slug, 'set_status', st)}
+                                        disabled={!!isSaving}
+                                        style={{ ...s.statusBtn, background: '#f9fafb', color: c.color, border: `2px solid ${c.color}40` }}>
+                                        <span style={{ display: 'block', fontSize: '0.85rem' }}>{STATUS_LABELS[st]}</span>
+                                        <span style={{ display: 'block', fontSize: '0.7rem', opacity: 0.7, marginTop: 2 }}>{STATUS_DESCRIPTIONS[st]}</span>
+                                      </button>
+                                    )
+                                  })}
+                                </div>
+                                {feedback[client.slug] && (
+                                  <div style={{ ...s.feedback, color: '#166534', background: '#dcfce7', marginTop: 10 }}>
+                                    {feedback[client.slug]}
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      )
+                    })}
+                  </div>
+                )}
+              </div>
+            )}
           </div>
         )}
       </div>

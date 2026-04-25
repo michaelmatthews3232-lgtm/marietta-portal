@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import Anthropic from '@anthropic-ai/sdk'
-import { renderSiteHtml, getTemplateCss } from '../../../lib/builder'
+import { renderSiteHtml, getTemplateCss, getTemplateName, getHeroImage } from '../../../lib/builder'
 import { deployToNetlify } from '../../../lib/netlify'
 
 export const maxDuration = 60
@@ -9,49 +9,8 @@ const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY })
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL!
 const SERVICE_KEY  = process.env.SUPABASE_SERVICE_ROLE_KEY!
 
-const TEMPLATE_MAP: Record<string, string> = {
-  restaurant: 'restaurant', food: 'restaurant', cafe: 'restaurant',
-  bar: 'restaurant', bakery: 'restaurant', meal_takeaway: 'restaurant',
-  hair_care: 'salon', beauty_salon: 'salon', nail_salon: 'salon', spa: 'salon',
-  plumber: 'trades', electrician: 'trades', painter: 'trades',
-  general_contractor: 'trades', roofing_contractor: 'trades',
-}
-
-const CATEGORY_HERO_IMAGES: Record<string, string> = {
-  hair_care:          'https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?w=1600&q=80',
-  beauty_salon:       'https://images.unsplash.com/photo-1487412840181-b228e1ad0c4b?w=1600&q=80',
-  nail_salon:         'https://images.unsplash.com/photo-1604654894610-df63bc536371?w=1600&q=80',
-  spa:                'https://images.unsplash.com/photo-1540555700478-4be289fbecef?w=1600&q=80',
-  restaurant:         'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=1600&q=80',
-  food:               'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=1600&q=80',
-  cafe:               'https://images.unsplash.com/photo-1501339847302-ac426a4a7cbb?w=1600&q=80',
-  bakery:             'https://images.unsplash.com/photo-1555507036-ab1f4038808a?w=1600&q=80',
-  bar:                'https://images.unsplash.com/photo-1566417713940-fe7c737a9ef2?w=1600&q=80',
-  meal_takeaway:      'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=1600&q=80',
-  plumber:            'https://images.unsplash.com/photo-1603796846097-bee99e4a601f?w=1600&q=80',
-  electrician:        'https://images.unsplash.com/photo-1621905251918-48416bd8575a?w=1600&q=80',
-  general_contractor: 'https://images.unsplash.com/photo-1504307651254-35680f356dfd?w=1600&q=80',
-  painter:            'https://images.unsplash.com/photo-1589939705384-5185137a7f0f?w=1600&q=80',
-  roofing_contractor: 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=1600&q=80',
-}
-
 function slugify(name: string) {
   return name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '')
-}
-
-function getTemplate(types: string[]) {
-  for (const t of types) {
-    if (TEMPLATE_MAP[t.toLowerCase()]) return TEMPLATE_MAP[t.toLowerCase()]
-  }
-  return 'restaurant'
-}
-
-function getHeroImage(types: string[]): string {
-  for (const t of types) {
-    const img = CATEGORY_HERO_IMAGES[t.toLowerCase()]
-    if (img) return img
-  }
-  return CATEGORY_HERO_IMAGES.restaurant
 }
 
 export async function POST(req: NextRequest) {
@@ -117,7 +76,7 @@ Google Summary: ${lead.summary || 'none provided'}`
     const aiContent = JSON.parse(raw.replace(/^```json\n?/, '').replace(/\n?```$/, ''))
 
     const allTypes = lead.types?.length ? lead.types : [lead.category]
-    const templateName = getTemplate(allTypes)
+    const templateName = getTemplateName(allTypes)
     const heroImageUrl = getHeroImage(allTypes)
 
     const templateData = {

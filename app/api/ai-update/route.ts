@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import Anthropic from '@anthropic-ai/sdk'
 import { getClientBySlug, updateClientContent } from '../../../lib/db'
-import { renderSiteHtml, getTemplateCss } from '../../../lib/builder'
+import { renderSiteHtml, getTemplateCss, buildTemplateData } from '../../../lib/builder'
 import { deployToNetlify } from '../../../lib/netlify'
 
 const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY })
@@ -81,23 +81,6 @@ Return JSON with only changed fields. For services or hours arrays, return the f
   }
 }
 
-function buildTemplateData(aiContent: Record<string, unknown>, lead: Record<string, unknown>) {
-  return {
-    ...aiContent,
-    name:           lead.name,
-    address:        lead.address,
-    phone:          lead.phone || '',
-    email:          lead.email || '',
-    hours:          lead.hours || [],
-    rating:         lead.rating || null,
-    reviewCount:    lead.reviewCount || 0,
-    socialProfiles: lead.socialProfiles || {},
-    yelpUrl:        lead.yelpUrl || null,
-    year:           new Date().getFullYear(),
-    portalUrl:      process.env.NEXT_PUBLIC_PORTAL_URL || 'https://mariettawebsites.vercel.app',
-    slug:           lead.slug
-  }
-}
 
 function buildSummary(updates: Record<string, unknown>): string {
   const parts: string[] = []

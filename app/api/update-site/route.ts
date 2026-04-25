@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getClientBySlug, updateClientContent } from '../../../lib/db'
-import { renderSiteHtml, getTemplateCss } from '../../../lib/builder'
+import { renderSiteHtml, getTemplateCss, buildTemplateData } from '../../../lib/builder'
 import { deployToNetlify } from '../../../lib/netlify'
 
 export async function POST(req: NextRequest) {
@@ -31,20 +31,3 @@ export async function POST(req: NextRequest) {
   }
 }
 
-function buildTemplateData(aiContent: Record<string, unknown>, lead: Record<string, unknown>) {
-  return {
-    ...aiContent,
-    name:           lead.name,
-    address:        lead.address,
-    phone:          lead.phone || '',
-    email:          lead.email || '',
-    hours:          lead.hours || [],
-    rating:         lead.rating || null,
-    reviewCount:    lead.reviewCount || 0,
-    socialProfiles: lead.socialProfiles || {},
-    yelpUrl:        lead.yelpUrl || null,
-    year:           new Date().getFullYear(),
-    portalUrl:      process.env.NEXT_PUBLIC_PORTAL_URL || 'https://mariettawebsites.vercel.app',
-    slug:           lead.slug
-  }
-}
