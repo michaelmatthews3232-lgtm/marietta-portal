@@ -18,7 +18,8 @@
       <span class="logo">{{name}}</span>
       <ul class="nav-links">
         <li><a href="#about">About</a></li>
-        <li><a href="#services">Our Menu</a></li>
+        <li><a href="#services">Specialties</a></li>
+        {{#if menuHtml}}<li><a href="#menu">Menu</a></li>{{/if}}
         {{#if reviews}}<li><a href="#reviews">Reviews</a></li>{{/if}}
         <li><a href="#contact">Contact</a></li>
         <li><a href="tel:{{phone}}" class="btn-outline">Call Now</a></li>
@@ -81,6 +82,19 @@
       </div>
     </div>
   </section>
+
+  <!-- MENU -->
+  {{#if menuHtml}}
+  <section class="menu section" id="menu">
+    <div class="container">
+      <span class="section-label">Our Menu</span>
+      <h2>What We Serve</h2>
+      <div class="menu-grid">
+        {{{menuHtml}}}
+      </div>
+    </div>
+  </section>
+  {{/if}}
 
   <!-- REVIEWS -->
   {{#if reviews}}

@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getClientBySlug, getClientByEmail, getAllClients } from '../../../lib/db'
 
-const ADMIN_EMAILS = (process.env.ADMIN_EMAILS || process.env.ADMIN_EMAIL || 'michael.matthews3232@gmail.com')
+const ADMIN_EMAILS = (process.env.ADMIN_EMAILS || process.env.ADMIN_EMAIL || 'michael.matthews3232@gmail.com,bethm.trent@gmail.com')
   .split(',').map(e => e.trim().toLowerCase())
 
 export async function GET(req: NextRequest) {
@@ -13,15 +13,16 @@ export async function GET(req: NextRequest) {
   if (admin === 'true') {
     const all = await getAllClients()
     return NextResponse.json(all.map(c => ({
-      name:        c.business_name,
-      slug:        c.slug,
-      netlifyUrl:  c.netlify_url,
-      address:     c.address,
-      phone:       c.phone || '',
-      email:       c.email || '',
-      onboardedAt: c.onboarded_at,
-      status:      c.status,
-      referredBy:  (c as Record<string, unknown>).referred_by || '',
+      name:         c.business_name,
+      slug:         c.slug,
+      netlifyUrl:   c.netlify_url,
+      address:      c.address,
+      phone:        c.phone || '',
+      email:        c.email || '',
+      onboardedAt:  c.onboarded_at,
+      status:       c.status,
+      referredBy:   (c as Record<string, unknown>).referred_by || '',
+      templateName: c.template_name || 'restaurant',
     })))
   }
 

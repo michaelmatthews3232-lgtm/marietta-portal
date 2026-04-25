@@ -56,7 +56,10 @@ export async function deployToNetlify(
     if (!filePath) continue
     const content = files[filePath]
     const contentType = filePath.endsWith('.html') ? 'text/html'
-      : filePath.endsWith('.css') ? 'text/css'
+      : filePath.endsWith('.css')  ? 'text/css'
+      : filePath.endsWith('.jpg') || filePath.endsWith('.jpeg') ? 'image/jpeg'
+      : filePath.endsWith('.png')  ? 'image/png'
+      : filePath.endsWith('.webp') ? 'image/webp'
       : 'application/octet-stream'
     await apiUpload(deployId, filePath, content, contentType)
   }

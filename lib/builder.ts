@@ -90,6 +90,27 @@ export function buildTemplateData(
   }
 }
 
+export type MenuCategory = {
+  name: string
+  items: Array<{ name: string; description?: string; price?: string }>
+}
+
+export function renderMenuHtml(categories: MenuCategory[]): string {
+  if (!categories?.length) return ''
+  return categories.map(cat => `<div class="menu-category">
+      <h3 class="menu-category-name">${escapeHtml(cat.name)}</h3>
+      <div class="menu-items">
+        ${(cat.items || []).map(item => `<div class="menu-item">
+            <div class="menu-item-header">
+              <span class="menu-item-name">${escapeHtml(item.name)}</span>
+              ${item.price ? `<span class="menu-item-price">${escapeHtml(item.price)}</span>` : ''}
+            </div>
+            ${item.description ? `<p class="menu-item-desc">${escapeHtml(item.description)}</p>` : ''}
+          </div>`).join('\n        ')}
+      </div>
+    </div>`).join('\n  ')
+}
+
 export function renderSiteHtml(templateName: string, data: Record<string, unknown>): string {
   const templateDir = path.join(process.cwd(), 'templates', templateName)
   const rawHtml = fs.readFileSync(path.join(templateDir, 'index.html'), 'utf8')
@@ -102,6 +123,12 @@ export function getTemplateCss(templateName: string): string {
 }
 
 function renderTemplate(html: string, data: Record<string, unknown>): string {
+  // {{{raw}}} — unescaped injection (must run before doubled-brace pass)
+  html = html.replace(/\{\{\{([\w.]+)\}\}\}/g, (_, key) => {
+    const val = resolvePath(data, key)
+    return val != null ? String(val) : ''
+  })
+
   // {{#if key}} ... {{/if}}
   html = html.replace(/\{\{#if ([\w.]+)\}\}([\s\S]*?)\{\{\/if\}\}/g, (_, key, inner) => {
     const val = resolvePath(data, key)
@@ -140,7 +167,7 @@ function resolvePath(obj: unknown, pathStr: string): unknown {
     (acc != null && typeof acc === 'object') ? (acc as Record<string, unknown>)[k] : null, obj)
 }
 
-function escapeHtml(str: string): string {
+export function escapeHtml(str: string): string {
   return str
     .replace(/&/g, '&amp;').replace(/</g, '&lt;')
     .replace(/>/g, '&gt;').replace(/"/g, '&quot;')

@@ -124,6 +124,23 @@ p { color: #444; max-width: 640px; }
 .hours-list li { color: rgba(255,255,255,0.65); font-size: 0.9rem; padding-bottom: 10px; border-bottom: 1px solid rgba(255,255,255,0.07); }
 .hours-list li:last-child { border-bottom: none; }
 
+/* ===== MENU ===== */
+.menu { background: #fff; }
+.menu h2 { max-width: none; margin-bottom: 48px; }
+.menu-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 40px; }
+.menu-category { border-top: 2px solid #f0ebe3; padding-top: 24px; }
+.menu-category-name {
+  font-family: 'Playfair Display', serif; font-size: 1.3rem; font-weight: 700;
+  color: #1a1a1a; margin-bottom: 20px;
+}
+.menu-items { display: flex; flex-direction: column; gap: 16px; }
+.menu-item { padding-bottom: 16px; border-bottom: 1px solid #f5f0e8; }
+.menu-item:last-child { border-bottom: none; }
+.menu-item-header { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; margin-bottom: 4px; }
+.menu-item-name { font-weight: 600; font-size: 0.97rem; color: #1a1a1a; }
+.menu-item-price { font-weight: 600; font-size: 0.9rem; color: #c8913a; white-space: nowrap; }
+.menu-item-desc { font-size: 0.85rem; color: #888; max-width: none; }
+
 /* ===== REVIEWS ===== */
 .reviews { background: #faf8f4; }
 .reviews h2 { max-width: none; margin-bottom: 48px; }

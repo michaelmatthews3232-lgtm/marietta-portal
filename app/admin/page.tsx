@@ -10,7 +10,8 @@ const supabase = createClient(
 
 interface Client {
   name: string; slug: string; netlifyUrl: string; address: string
-  phone: string; email: string; onboardedAt: string; status: string; referredBy?: string
+  phone: string; email: string; onboardedAt: string; status: string
+  referredBy?: string; templateName: string
 }
 
 interface Lead {
@@ -113,6 +114,8 @@ export default function AdminPage() {
   const [customCss, setCustomCss]       = useState<Record<string, string>>({})
   const [pushingCode, setPushingCode]   = useState<string | null>(null)
   const [refreshing, setRefreshing]     = useState<string | null>(null)
+  const [menuUploading, setMenuUploading] = useState<string | null>(null)
+  const [menuFeedback, setMenuFeedback]   = useState<Record<string, string>>({})
 
   useEffect(() => {
     supabase.auth.getUser().then(({ data }) => {
@@ -256,6 +259,31 @@ export default function AdminPage() {
     } else {
       setFeedback(f => ({ ...f, [slug]: `Deploy error: ${data.error}` }))
     }
+  }
+
+  async function uploadMenu(slug: string, file: File) {
+    setMenuUploading(slug)
+    setMenuFeedback(f => ({ ...f, [slug]: '' }))
+    const reader = new FileReader()
+    reader.onload = async () => {
+      const dataUrl = reader.result as string
+      const base64 = dataUrl.split(',')[1]
+      const mimeType = file.type || 'image/jpeg'
+      const res = await fetch('/api/extract-menu', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ slug, imageBase64: base64, mimeType }),
+      })
+      const data = await res.json()
+      setMenuUploading(null)
+      if (data.success) {
+        setMenuFeedback(f => ({ ...f, [slug]: `Menu extracted ✓ — ${data.categories} categories, ${data.items} items added to site` }))
+      } else {
+        setMenuFeedback(f => ({ ...f, [slug]: `Menu error: ${data.error}` }))
+      }
+    }
+    reader.onerror = () => { setMenuUploading(null); setMenuFeedback(f => ({ ...f, [slug]: 'Failed to read file' })) }
+    reader.readAsDataURL(file)
   }
 
   const isNotInterested = (c: Client) => c.status === 'not_interested' || c.status === 'cancelled'
@@ -560,6 +588,36 @@ export default function AdminPage() {
                           ))}
                         </div>
                       </div>
+
+                      {/* Niche Tools */}
+                      {client.templateName === 'restaurant' && (
+                        <div style={s.section}>
+                          <h3 style={s.sectionTitle}>Restaurant Tools</h3>
+                          <p style={s.sectionDesc}>Upload a photo of the menu (or screenshot). Claude will extract all items and add a Menu section to the live site automatically.</p>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
+                            <label style={{
+                              padding: '10px 20px', background: menuUploading === client.slug ? '#6b7280' : '#c8913a',
+                              color: '#fff', borderRadius: 8, fontSize: '0.85rem', fontWeight: 600, cursor: menuUploading === client.slug ? 'default' : 'pointer',
+                              opacity: menuUploading === client.slug ? 0.7 : 1,
+                            }}>
+                              {menuUploading === client.slug ? '⏳ Extracting menu…' : '📸 Upload Menu Photo'}
+                              <input
+                                type="file" accept="image/*" style={{ display: 'none' }}
+                                disabled={menuUploading === client.slug}
+                                onChange={e => { const f = e.target.files?.[0]; if (f) uploadMenu(client.slug, f) }}
+                              />
+                            </label>
+                            {menuFeedback[client.slug] && (
+                              <span style={{
+                                fontSize: '0.83rem', fontWeight: 500,
+                                color: menuFeedback[client.slug].startsWith('Menu error') ? '#ef4444' : '#166534',
+                              }}>
+                                {menuFeedback[client.slug]}
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                      )}
 
                       {/* Source Code */}
                       <div style={s.section}>
