@@ -19,15 +19,29 @@ interface Lead {
   hours: string[]; googleUrl: string; summary: string | null; category: string
 }
 
-const STATUS_OPTIONS = ['pending', 'paid', 'active', 'cancelled']
+const STATUS_OPTIONS = ['pending', 'contacted', 'paid', 'active', 'not_interested']
 const STATUS_LABELS: Record<string, string> = {
-  pending: 'Pending', paid: 'Paid', active: 'Active', cancelled: 'Cancelled'
+  pending:        'New Lead',
+  contacted:      'Contacted',
+  paid:           'Paid Client',
+  active:         'Active Client',
+  not_interested: 'Not Interested',
+  cancelled:      'Not Interested', // backward compat
+}
+const STATUS_DESCRIPTIONS: Record<string, string> = {
+  pending:        'Site built — not yet contacted',
+  contacted:      'Reached out — awaiting response',
+  paid:           'Converted — payment received',
+  active:         'Ongoing client — site maintained',
+  not_interested: 'Passed or declined',
 }
 const STATUS_COLORS: Record<string, { bg: string; color: string }> = {
-  active:    { bg: '#dcfce7', color: '#166534' },
-  paid:      { bg: '#dbeafe', color: '#1e40af' },
-  pending:   { bg: '#fef9c3', color: '#854d0e' },
-  cancelled: { bg: '#fee2e2', color: '#991b1b' },
+  pending:        { bg: '#dbeafe', color: '#1e40af' },
+  contacted:      { bg: '#fef9c3', color: '#854d0e' },
+  paid:           { bg: '#dcfce7', color: '#166534' },
+  active:         { bg: '#d1fae5', color: '#065f46' },
+  not_interested: { bg: '#fee2e2', color: '#991b1b' },
+  cancelled:      { bg: '#fee2e2', color: '#991b1b' },
 }
 
 const BUSINESS_TYPES = [
@@ -97,7 +111,11 @@ export default function AdminPage() {
     const data = await res.json()
     setSaving(null)
     if (data.success) {
-      setFeedback(f => ({ ...f, [slug]: action === 'set_domain' ? 'Domain set! DNS instructions below.' : 'Saved ✓' }))
+      const msg = action === 'set_domain' ? 'Domain set! DNS instructions below.'
+        : action === 'set_status' ? `Status updated to "${STATUS_LABELS[value] || value}" ✓`
+        : action === 'set_email' ? 'Login email saved ✓'
+        : 'Saved ✓'
+      setFeedback(f => ({ ...f, [slug]: msg }))
       loadClients()
     } else {
       setFeedback(f => ({ ...f, [slug]: `Error: ${data.error}` }))
@@ -143,10 +161,10 @@ export default function AdminPage() {
   )
 
   const stats = {
-    total:     clients.length,
-    paid:      clients.filter(c => c.status === 'paid').length,
-    active:    clients.filter(c => c.status === 'active').length,
-    pending:   clients.filter(c => c.status === 'pending').length,
+    total:      clients.length,
+    newLeads:   clients.filter(c => c.status === 'pending' || c.status === 'new_lead').length,
+    contacted:  clients.filter(c => c.status === 'contacted').length,
+    converted:  clients.filter(c => c.status === 'paid' || c.status === 'active').length,
   }
 
   return (
@@ -241,9 +259,9 @@ export default function AdminPage() {
         <div style={s.statsRow}>
           {[
             { label: 'Total Sites',    val: stats.total },
-            { label: 'Paid Clients',   val: stats.paid,    highlight: true },
-            { label: 'Active',         val: stats.active },
-            { label: 'Pending Leads',  val: stats.pending, warn: true },
+            { label: 'Converted',      val: stats.converted, highlight: true },
+            { label: 'Contacted',      val: stats.contacted },
+            { label: 'New Leads',      val: stats.newLeads, warn: true },
           ].map(stat => (
             <div key={stat.label} style={{ ...s.stat, background: stat.highlight ? '#1a1a1a' : stat.warn && stat.val > 0 ? '#fff7ed' : '#fff' }}>
               <span style={{ ...s.statNum, color: stat.highlight ? '#c8913a' : stat.warn && stat.val > 0 ? '#ea580c' : '#111' }}>{stat.val}</span>
@@ -310,10 +328,12 @@ export default function AdminPage() {
                                   ...s.statusBtn,
                                   background: client.status === st ? c.bg : '#f9fafb',
                                   color: client.status === st ? c.color : '#6b7280',
-                                  border: `1px solid ${client.status === st ? c.color + '40' : '#e5e7eb'}`,
-                                  fontWeight: client.status === st ? 700 : 400
+                                  border: `2px solid ${client.status === st ? c.color : '#e5e7eb'}`,
+                                  fontWeight: client.status === st ? 700 : 400,
+                                  opacity: isSaving ? 0.6 : 1,
                                 }}>
-                                {STATUS_LABELS[st]}
+                                <span style={{ display: 'block', fontSize: '0.85rem' }}>{STATUS_LABELS[st]}</span>
+                                <span style={{ display: 'block', fontSize: '0.7rem', opacity: 0.7, marginTop: 2 }}>{STATUS_DESCRIPTIONS[st]}</span>
                               </button>
                             )
                           })}
