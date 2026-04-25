@@ -116,6 +116,8 @@ export default function AdminPage() {
   const [refreshing, setRefreshing]     = useState<string | null>(null)
   const [menuUploading, setMenuUploading] = useState<string | null>(null)
   const [menuFeedback, setMenuFeedback]   = useState<Record<string, string>>({})
+  const [paymentLink, setPaymentLink]     = useState<Record<string, string>>({})
+  const [generatingLink, setGeneratingLink] = useState<string | null>(null)
 
   useEffect(() => {
     supabase.auth.getUser().then(({ data }) => {
@@ -258,6 +260,21 @@ export default function AdminPage() {
       loadClients()
     } else {
       setFeedback(f => ({ ...f, [slug]: `Deploy error: ${data.error}` }))
+    }
+  }
+
+  async function generatePaymentLink(slug: string) {
+    setGeneratingLink(slug)
+    const res = await fetch('/api/create-checkout', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ slug })
+    })
+    const data = await res.json()
+    setGeneratingLink(null)
+    if (data.url) {
+      setPaymentLink(x => ({ ...x, [slug]: data.url }))
+    } else {
+      setFeedback(f => ({ ...f, [slug]: `Payment link error: ${data.error}` }))
     }
   }
 
@@ -455,6 +472,24 @@ export default function AdminPage() {
                       style={{ ...s.editBtn, background: '#2e7d9e', opacity: refreshing === client.slug ? 0.6 : 1 }}>
                       {refreshing === client.slug ? '↻ Refreshing…' : '↻ Refresh from Google'}
                     </button>
+                    {client.status !== 'paid' && client.status !== 'active' ? (
+                      paymentLink[client.slug] ? (
+                        <button
+                          onClick={() => { navigator.clipboard.writeText(paymentLink[client.slug]); setFeedback(f => ({ ...f, [client.slug]: 'Payment link copied ✓' })) }}
+                          style={{ ...s.editBtn, background: '#166534' }}>
+                          📋 Copy Payment Link
+                        </button>
+                      ) : (
+                        <button
+                          onClick={() => generatePaymentLink(client.slug)}
+                          disabled={generatingLink === client.slug}
+                          style={{ ...s.editBtn, background: '#166534', opacity: generatingLink === client.slug ? 0.6 : 1 }}>
+                          {generatingLink === client.slug ? 'Generating…' : '💳 Get Payment Link'}
+                        </button>
+                      )
+                    ) : (
+                      <span style={{ fontSize: '0.78rem', color: '#166534', fontWeight: 600, background: '#dcfce7', padding: '4px 10px', borderRadius: 20 }}>✓ Paying</span>
+                    )}
                     <span style={s.addedDate}>Added {new Date(client.onboardedAt).toLocaleDateString()}</span>
                     {client.referredBy && <span style={s.addedDate}>Referred by: {client.referredBy}</span>}
                   </div>
