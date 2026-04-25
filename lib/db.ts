@@ -36,7 +36,7 @@ export interface ClientRecord {
 export async function getClientBySlug(slug: string): Promise<ClientRecord | null> {
   const res = await fetch(
     `${SUPABASE_URL}/rest/v1/clients?slug=eq.${encodeURIComponent(slug)}&select=*`,
-    { headers: headers() }
+    { headers: headers(), cache: 'no-store' }
   )
   if (!res.ok) throw new Error(`DB error: ${res.status} ${await res.text()}`)
   const rows: ClientRecord[] = await res.json()
@@ -46,7 +46,7 @@ export async function getClientBySlug(slug: string): Promise<ClientRecord | null
 export async function getClientByEmail(email: string): Promise<ClientRecord | null> {
   const res = await fetch(
     `${SUPABASE_URL}/rest/v1/clients?email=ilike.${encodeURIComponent(email)}&select=*`,
-    { headers: headers() }
+    { headers: headers(), cache: 'no-store' }
   )
   if (!res.ok) throw new Error(`DB error: ${res.status} ${await res.text()}`)
   const rows: ClientRecord[] = await res.json()
@@ -56,7 +56,7 @@ export async function getClientByEmail(email: string): Promise<ClientRecord | nu
 export async function getAllClients(): Promise<ClientRecord[]> {
   const res = await fetch(
     `${SUPABASE_URL}/rest/v1/clients?select=*&order=onboarded_at.desc`,
-    { headers: headers() }
+    { headers: headers(), cache: 'no-store' }
   )
   if (!res.ok) throw new Error(`DB error: ${res.status} ${await res.text()}`)
   return res.json()
