@@ -341,6 +341,7 @@ export default function AdminPage() {
             <h1 style={s.title}>Admin Dashboard</h1>
           </div>
           <div style={{ display: 'flex', gap: 10 }}>
+            <a href="/sales-cheat-sheet.html" target="_blank" rel="noopener" style={{ ...s.logoutBtn, textDecoration: 'none', display: 'inline-flex', alignItems: 'center' }}>📋 Sales Cheat Sheet</a>
             <button onClick={() => { setShowFind(v => !v); setFindResults([]) }} style={s.findBtn}>
               {showFind ? '✕ Close' : '+ Find New Leads'}
             </button>

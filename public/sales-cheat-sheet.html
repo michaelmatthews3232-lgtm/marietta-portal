@@ -1,0 +1,544 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Local Business Website Sales Cheat Sheet</title>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;800;900&family=Barlow:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --ink: #111214;
+    --paper: #f5f2eb;
+    --accent: #c8401a;
+    --accent2: #1a5ec8;
+    --rule: #c8c0b0;
+    --soft: #e8e3d8;
+    --muted: #6b6560;
+    --green: #1a7a45;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Barlow', sans-serif;
+    background: var(--paper);
+    color: var(--ink);
+    font-size: 11px;
+    line-height: 1.45;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  .page {
+    width: 8.5in;
+    margin: 0 auto;
+    padding: 0.45in 0.5in;
+  }
+
+  .header {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    align-items: end;
+    border-bottom: 3px solid var(--ink);
+    padding-bottom: 8px;
+    margin-bottom: 14px;
+    gap: 12px;
+  }
+
+  .header-title {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 28px;
+    font-weight: 900;
+    text-transform: uppercase;
+    letter-spacing: -0.5px;
+    line-height: 1;
+  }
+
+  .header-title span { color: var(--accent); }
+
+  .header-meta {
+    text-align: right;
+    font-size: 10px;
+    color: var(--muted);
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    line-height: 1.6;
+  }
+
+  .header-meta strong {
+    font-size: 13px;
+    color: var(--green);
+    display: block;
+    font-weight: 900;
+  }
+
+  .grid-main {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+  }
+
+  .grid-left { display: flex; flex-direction: column; gap: 14px; }
+  .grid-right { display: flex; flex-direction: column; gap: 14px; }
+
+  .card {
+    background: white;
+    border: 1.5px solid var(--rule);
+    border-radius: 3px;
+    overflow: hidden;
+  }
+
+  .card-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 10px;
+    background: var(--ink);
+    color: white;
+  }
+
+  .card-header.accent  { background: var(--accent); }
+  .card-header.accent2 { background: var(--accent2); }
+  .card-header.green   { background: var(--green); }
+
+  .card-num {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 18px;
+    font-weight: 900;
+    line-height: 1;
+    opacity: 0.5;
+  }
+
+  .card-title {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 13px;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    line-height: 1;
+  }
+
+  .card-body { padding: 10px; }
+
+  .pitch-box {
+    background: var(--soft);
+    border-left: 4px solid var(--accent);
+    padding: 10px 12px;
+    border-radius: 2px;
+    margin-bottom: 8px;
+    font-size: 11.5px;
+    font-weight: 500;
+    line-height: 1.55;
+    font-style: italic;
+    color: #1a1a1a;
+  }
+
+  .benefit-item {
+    display: flex;
+    gap: 8px;
+    align-items: flex-start;
+    padding: 5px 0;
+    border-bottom: 1px solid var(--soft);
+  }
+
+  .benefit-item:last-child { border-bottom: none; }
+
+  .benefit-icon {
+    font-size: 13px;
+    flex-shrink: 0;
+    margin-top: 1px;
+    width: 16px;
+    text-align: center;
+  }
+
+  .benefit-text strong {
+    display: block;
+    font-size: 10.5px;
+    font-weight: 700;
+    color: var(--ink);
+    margin-bottom: 1px;
+  }
+
+  .benefit-text span {
+    font-size: 9.5px;
+    color: var(--muted);
+    line-height: 1.4;
+  }
+
+  .stats-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 8px;
+  }
+
+  .stat-block {
+    background: var(--soft);
+    border-radius: 3px;
+    padding: 8px;
+    text-align: center;
+  }
+
+  .stat-num {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 24px;
+    font-weight: 900;
+    color: var(--accent2);
+    line-height: 1;
+    display: block;
+    margin-bottom: 3px;
+  }
+
+  .stat-label {
+    font-size: 9px;
+    font-weight: 600;
+    color: var(--ink);
+    line-height: 1.35;
+    display: block;
+    margin-bottom: 2px;
+  }
+
+  .stat-source {
+    font-size: 8px;
+    color: var(--muted);
+    display: block;
+    font-style: italic;
+  }
+
+  .objection {
+    margin-bottom: 9px;
+    padding-bottom: 9px;
+    border-bottom: 1px dashed var(--rule);
+  }
+
+  .objection:last-child { border-bottom: none; margin-bottom: 0; padding-bottom: 0; }
+
+  .objection-q {
+    font-weight: 700;
+    font-size: 10px;
+    color: var(--accent);
+    margin-bottom: 3px;
+  }
+
+  .objection-a {
+    font-size: 10.5px;
+    color: var(--ink);
+    line-height: 1.5;
+  }
+
+  .close-script {
+    background: #eef4ff;
+    border-left: 4px solid var(--accent2);
+    padding: 9px 12px;
+    border-radius: 2px;
+    margin-bottom: 8px;
+    font-size: 11px;
+    font-weight: 500;
+    line-height: 1.55;
+    font-style: italic;
+  }
+
+  .close-options {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    margin-top: 8px;
+  }
+
+  .close-option {
+    background: var(--soft);
+    border-radius: 3px;
+    padding: 7px 9px;
+  }
+
+  .close-option strong {
+    display: block;
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 10.5px;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--green);
+    margin-bottom: 2px;
+  }
+
+  .close-option span {
+    font-size: 9.5px;
+    color: var(--muted);
+    font-style: italic;
+    line-height: 1.4;
+    display: block;
+  }
+
+  .footer-strip {
+    margin-top: 14px;
+    background: var(--ink);
+    color: white;
+    border-radius: 3px;
+    padding: 8px 12px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+  }
+
+  .footer-strip-label {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 11px;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: #aaa;
+    flex-shrink: 0;
+  }
+
+  .footer-reminder {
+    font-size: 10px;
+    color: #ddd;
+    line-height: 1.4;
+    font-style: italic;
+  }
+
+  .price-pill {
+    flex-shrink: 0;
+    background: var(--green);
+    color: white;
+    border-radius: 20px;
+    padding: 5px 14px;
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 900;
+    font-size: 14px;
+    letter-spacing: 0.5px;
+    white-space: nowrap;
+  }
+
+  @media print {
+    body { font-size: 10px; }
+    .page { padding: 0.3in 0.4in; }
+  }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <div class="header">
+    <div>
+      <div class="header-title">Local Business Website <span>Sales Cheat Sheet</span></div>
+    </div>
+    <div class="header-meta">
+      <strong>$100 setup &nbsp;·&nbsp; $50/mo</strong>
+      Cold Call Quick Reference
+    </div>
+  </div>
+
+  <div class="grid-main">
+
+    <div class="grid-left">
+
+      <div class="card">
+        <div class="card-header accent">
+          <div class="card-num">01</div>
+          <div class="card-title">Quick Pitch — When They Answer</div>
+        </div>
+        <div class="card-body">
+          <p style="font-size:9px; font-weight:700; text-transform:uppercase; letter-spacing:0.8px; color:var(--muted); margin-bottom:6px;">You've already built their site. You're not pitching a concept — you're handing them something real.</p>
+
+          <div style="margin-bottom:7px;">
+            <div style="font-size:8.5px; font-weight:800; text-transform:uppercase; letter-spacing:0.6px; color:var(--accent); margin-bottom:3px;">▸ The standard opener</div>
+            <div class="pitch-box">"Hey, is this [name]? My name's [your name] — so this is a bit of an unusual call. I put together a starter website for [Business Name] and wanted to show it to you before doing anything else with it. Fair warning — it's a template right now, I didn't have much to go on. But it gives you a real sense of what it could look like once we fill it in with your actual info. You got two minutes to take a look?"</div>
+          </div>
+
+          <div style="margin-bottom:7px;">
+            <div style="font-size:8.5px; font-weight:800; text-transform:uppercase; letter-spacing:0.6px; color:var(--accent); margin-bottom:3px;">▸ If they sound skeptical or guarded</div>
+            <div class="pitch-box">"I'll be straight with you — it's a starting point, not a finished product. I built it from your Google listing since that's all I had. But the structure is there, it's live, and if you like the direction we'd update everything — your photos, your hours, whatever you want. Can I just text you the link?"</div>
+          </div>
+
+          <div style="margin-bottom:8px;">
+            <div style="font-size:8.5px; font-weight:800; text-transform:uppercase; letter-spacing:0.6px; color:var(--accent); margin-bottom:3px;">▸ If they sound rushed</div>
+            <div class="pitch-box">"Real quick — I put a starter site together for your business, it's live right now. It's generic at the moment but I can customize it once you're on board. Can I text you the link to take a look when you get a minute?"</div>
+          </div>
+
+          <div style="background:var(--soft); border-radius:3px; padding:7px 9px;">
+            <p style="font-size:9px; font-weight:700; color:var(--ink); margin-bottom:3px;">SET THE EXPECTATION EARLY — IT HELPS YOU:</p>
+            <p style="font-size:9.5px; color:var(--muted); line-height:1.5;">Telling them upfront it's a template means they won't feel misled when they see it. It also naturally opens the door to the real pitch: "imagine this with your actual photos, your real services, exactly how you want it." That's what they're buying — not the template, but the finished version of it.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <div class="card-num">02</div>
+          <div class="card-title">Key Benefits — Lead With These</div>
+        </div>
+        <div class="card-body">
+          <div class="benefit-item">
+            <div class="benefit-icon">🔍</div>
+            <div class="benefit-text">
+              <strong>Show up when people search</strong>
+              <span>Without a site, you're invisible on Google. A website makes you findable 24/7 by people actively looking for what you offer right now.</span>
+            </div>
+          </div>
+          <div class="benefit-item">
+            <div class="benefit-icon">✅</div>
+            <div class="benefit-text">
+              <strong>Look legit — instantly</strong>
+              <span>People Google businesses before they call. If there's nothing to find, they move on to a competitor who has a site. A website tells people: "We're real, we're professional, we're trustworthy."</span>
+            </div>
+          </div>
+          <div class="benefit-item">
+            <div class="benefit-icon">⭐</div>
+            <div class="benefit-text">
+              <strong>Make your reviews visible</strong>
+              <span>Your happy customers already left reviews somewhere. A website brings that social proof front and center so new customers see it the moment they land on your page.</span>
+            </div>
+          </div>
+          <div class="benefit-item">
+            <div class="benefit-icon">📞</div>
+            <div class="benefit-text">
+              <strong>Capture calls & leads you're missing</strong>
+              <span>Word-of-mouth still drives business — but people verify before they call. A site catches the referrals that would otherwise Google you, find nothing, and call someone else.</span>
+            </div>
+          </div>
+          <div class="benefit-item">
+            <div class="benefit-icon">🏆</div>
+            <div class="benefit-text">
+              <strong>Beat local competitors</strong>
+              <span>If your competitor has a site and you don't, they're getting the clicks. A basic, clean website levels the playing field immediately.</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header green">
+          <div class="card-num">05</div>
+          <div class="card-title">The Close — Keep It Simple</div>
+        </div>
+        <div class="card-body">
+          <p style="font-size:9px; font-weight:700; text-transform:uppercase; letter-spacing:0.8px; color:var(--muted); margin-bottom:6px;">They've seen the template. Now sell the finished version — that's what the $100 is for.</p>
+          <div class="close-script">"So what you're looking at right now is just the starting point — the layout, the structure, the bones. For $100 we take that and turn it into something that actually looks like your business. Your photos, your services written the way you'd want them, your contact info, all of it. Then it's $50 a month and we keep it live, maintained, and updated whenever you need something changed. Want to move forward?"</div>
+          <p style="font-size:9.5px; color:var(--muted); margin-bottom:7px;">If they want to see more before committing:</p>
+          <div class="close-script" style="margin-bottom:0;">"Tell me one thing you'd want on it that isn't there right now. [Listen.] Okay — I can have that added before we even talk again. Let me do that and call you back Thursday. Fair?"</div>
+          <div class="close-options">
+            <div class="close-option">
+              <strong>If they stall after seeing it</strong>
+              <span>"What would you want to change about it? I can probably fix that today."</span>
+            </div>
+            <div class="close-option">
+              <strong>If they say call back</strong>
+              <span>"No problem — I'll text you the link so you can show someone else. Talk [specific day]?"</span>
+            </div>
+            <div class="close-option">
+              <strong>If they're skeptical it's real</strong>
+              <span>"Go ahead and Google your business name right now — it should come up. [Pause.] See it?"</span>
+            </div>
+            <div class="close-option">
+              <strong>After a yes</strong>
+              <span>Collect payment, confirm their email, ask for any photos or edits. Keep it moving.</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <div class="grid-right">
+
+      <div class="card">
+        <div class="card-header accent2">
+          <div class="card-num">03</div>
+          <div class="card-title">Real Stats — Use These in the Call</div>
+        </div>
+        <div class="card-body">
+          <div class="stats-grid">
+            <div class="stat-block">
+              <span class="stat-num">81%</span>
+              <span class="stat-label">of consumers research a business online before visiting or buying</span>
+              <span class="stat-source">BrightLocal / Visual Objects</span>
+            </div>
+            <div class="stat-block">
+              <span class="stat-num">31%</span>
+              <span class="stat-label">of shoppers decided not to buy from a small business because it had no website</span>
+              <span class="stat-source">Network Solutions, 2024</span>
+            </div>
+            <div class="stat-block">
+              <span class="stat-num">2.8×</span>
+              <span class="stat-label">more likely to grow revenues — businesses with websites vs. those without</span>
+              <span class="stat-source">Google / Deloitte Study</span>
+            </div>
+            <div class="stat-block">
+              <span class="stat-num">40%</span>
+              <span class="stat-label">faster revenue growth reported by small businesses after getting a website</span>
+              <span class="stat-source">Verisign, 2023</span>
+            </div>
+            <div class="stat-block">
+              <span class="stat-num">88%</span>
+              <span class="stat-label">of local mobile searchers visit or call a business within 24 hours of searching</span>
+              <span class="stat-source">Google Consumer Study</span>
+            </div>
+            <div class="stat-block">
+              <span class="stat-num">75%</span>
+              <span class="stat-label">of consumers judge a business's credibility based on its website design alone</span>
+              <span class="stat-source">Stanford Web Credibility Research</span>
+            </div>
+          </div>
+
+          <div style="background:var(--soft); border-radius:3px; padding:8px 10px; margin-top:8px;">
+            <p style="font-size:9.5px; font-weight:700; color:var(--ink); margin-bottom:3px;">📢 USE THIS IN THE CALL:</p>
+            <p style="font-size:10px; color:#333; font-style:italic; line-height:1.5;">"Google did a study with Deloitte — businesses with a website are 2.8 times more likely to grow their revenue than businesses without one. That's not a maybe. That's a documented pattern across thousands of small businesses."</p>
+          </div>
+
+          <div style="background:#fff3f0; border-left:3px solid var(--accent); padding:7px 10px; margin-top:8px; border-radius:2px;">
+            <p style="font-size:9.5px; font-weight:700; color:var(--accent); margin-bottom:3px;">THE REFERRAL LEAK STAT:</p>
+            <p style="font-size:10px; color:#333; line-height:1.5;">"Even businesses that run purely on word of mouth lose 20–35% of their referrals at the verification step — that's the moment someone hears about you, Googles your name, finds nothing, and calls someone else instead."</p>
+            <p style="font-size:8.5px; color:var(--muted); margin-top:3px; font-style:italic;">Source: Google consumer research on local business discovery</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header" style="background:#3d2e1e;">
+          <div class="card-num">04</div>
+          <div class="card-title">Common Objections — &amp; How to Handle Them</div>
+        </div>
+        <div class="card-body">
+          <div class="objection">
+            <div class="objection-q">"I get all my business through word of mouth."</div>
+            <div class="objection-a">"That's great — it means you're doing something right. Here's the thing though: when someone gets a recommendation for your business, the first thing they do is Google you. If they can't find you, a lot of those referrals go cold. A website doesn't replace word of mouth — it catches the ones that would otherwise slip through."</div>
+          </div>
+          <div class="objection">
+            <div class="objection-q">"I can't afford it / the timing isn't right."</div>
+            <div class="objection-a">"I completely understand. It's $100 to get started and $50 a month after that — that's less than most people spend on a business lunch. And if the site brings in even one extra customer a month, it's already paid for itself. The real question is: what's it costing you to not have one?"</div>
+          </div>
+          <div class="objection">
+            <div class="objection-q">"I already have a Facebook page."</div>
+            <div class="objection-a">"Facebook is great for staying in touch with existing customers — but it's not where people go when they're searching for a business they don't know yet. Google is. A website shows up in search results. A Facebook page mostly doesn't. They work differently, and you really need both."</div>
+          </div>
+          <div class="objection">
+            <div class="objection-q">"I need to think about it."</div>
+            <div class="objection-a">"Of course. I'll leave the site up for now — it's already live. But just so you know, once I move on to the next business I'll take it down and rebuild it for them instead. So no pressure, but if you want it, this week's the window. Can I check back in with you Thursday?"</div>
+          </div>
+          <div class="objection">
+            <div class="objection-q">"It looks too generic / doesn't look like my business."</div>
+            <div class="objection-a">"Yep, that's fair — and that's honestly the point of this call. I built it from whatever was publicly available about you, so it's a skeleton right now. What you're looking at is the structure and the layout. Once you're on board, we update everything — your photos, your actual services, your wording. What you see now is the before. I'm asking if you want the after."</div>
+          </div>
+          <div class="objection">
+            <div class="objection-q">"I'm too busy to deal with a website."</div>
+            <div class="objection-a">"It's already built — that's the whole point. You don't have to do anything to get it. I just need a yes or no. The site runs itself after that. Can I text you the link and call you back in an hour when you've had a second to look?"</div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <div class="footer-strip">
+    <div class="footer-strip-label">Remember</div>
+    <div class="footer-reminder">You're not pitching an idea — you're handing them something that already exists. The site is the proof. Get it in front of their eyes as fast as possible and let it do the talking.</div>
+    <div class="price-pill">$100 setup &nbsp;·&nbsp; $50/mo</div>
+  </div>
+
+</div>
+</body>
+</html>
