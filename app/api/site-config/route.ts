@@ -20,7 +20,8 @@ export async function GET(req: NextRequest) {
       phone:       c.phone || '',
       email:       c.email || '',
       onboardedAt: c.onboarded_at,
-      status:      c.status
+      status:      c.status,
+      referredBy:  (c as Record<string, unknown>).referred_by || '',
     })))
   }
 

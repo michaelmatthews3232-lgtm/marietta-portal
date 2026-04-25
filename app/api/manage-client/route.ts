@@ -38,13 +38,15 @@ async function dbGet(slug: string, select: string) {
 
 export async function PATCH(req: NextRequest) {
   try {
-    const { slug, action, value } = await req.json()
+    const { slug, action, value, referredBy } = await req.json()
     if (!slug || !action) return NextResponse.json({ error: 'Missing slug or action' }, { status: 400 })
 
     switch (action) {
 
       case 'set_status': {
-        await dbPatch(slug, { status: value })
+        const patch: Record<string, unknown> = { status: value }
+        if (value === 'paid' && referredBy) patch.referred_by = referredBy
+        await dbPatch(slug, patch)
         return NextResponse.json({ success: true })
       }
 

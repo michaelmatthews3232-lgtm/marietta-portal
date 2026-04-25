@@ -17,6 +17,24 @@ const TEMPLATE_MAP: Record<string, string> = {
   general_contractor: 'trades', roofing_contractor: 'trades',
 }
 
+const CATEGORY_HERO_IMAGES: Record<string, string> = {
+  hair_care:          'https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?w=1600&q=80',
+  beauty_salon:       'https://images.unsplash.com/photo-1487412840181-b228e1ad0c4b?w=1600&q=80',
+  nail_salon:         'https://images.unsplash.com/photo-1604654894610-df63bc536371?w=1600&q=80',
+  spa:                'https://images.unsplash.com/photo-1540555700478-4be289fbecef?w=1600&q=80',
+  restaurant:         'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=1600&q=80',
+  food:               'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=1600&q=80',
+  cafe:               'https://images.unsplash.com/photo-1501339847302-ac426a4a7cbb?w=1600&q=80',
+  bakery:             'https://images.unsplash.com/photo-1555507036-ab1f4038808a?w=1600&q=80',
+  bar:                'https://images.unsplash.com/photo-1566417713940-fe7c737a9ef2?w=1600&q=80',
+  meal_takeaway:      'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=1600&q=80',
+  plumber:            'https://images.unsplash.com/photo-1603796846097-bee99e4a601f?w=1600&q=80',
+  electrician:        'https://images.unsplash.com/photo-1621905251918-48416bd8575a?w=1600&q=80',
+  general_contractor: 'https://images.unsplash.com/photo-1504307651254-35680f356dfd?w=1600&q=80',
+  painter:            'https://images.unsplash.com/photo-1589939705384-5185137a7f0f?w=1600&q=80',
+  roofing_contractor: 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=1600&q=80',
+}
+
 function slugify(name: string) {
   return name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '')
 }
@@ -26,6 +44,14 @@ function getTemplate(types: string[]) {
     if (TEMPLATE_MAP[t.toLowerCase()]) return TEMPLATE_MAP[t.toLowerCase()]
   }
   return 'restaurant'
+}
+
+function getHeroImage(types: string[]): string {
+  for (const t of types) {
+    const img = CATEGORY_HERO_IMAGES[t.toLowerCase()]
+    if (img) return img
+  }
+  return CATEGORY_HERO_IMAGES.restaurant
 }
 
 export async function POST(req: NextRequest) {
@@ -41,35 +67,48 @@ export async function POST(req: NextRequest) {
     const existing = await checkRes.json()
     if (existing.length > 0) return NextResponse.json({ error: 'Site already exists for this business' }, { status: 409 })
 
-    // Claude content generation
+    const cityName = lead.address?.split(',').slice(1, 2).join('').trim() || 'the local area'
+    const ratingNote = lead.rating >= 4.5
+      ? `They have an outstanding ${lead.rating}-star rating from ${lead.reviewCount} Google reviews — weave their strong reputation into the copy naturally.`
+      : lead.rating >= 4
+      ? `They have a solid ${lead.rating}-star rating (${lead.reviewCount} reviews).`
+      : ''
+
     const message = await anthropic.messages.create({
       model: 'claude-sonnet-4-6',
       max_tokens: 2000,
-      system: `You are a professional web copywriter for small local businesses. Return ONLY valid JSON — no markdown, no explanation.`,
+      system: `You are a professional web copywriter for local small businesses. You write copy that feels personal, specific, and local — never generic. Return ONLY valid JSON — no markdown, no explanation.`,
       messages: [{
         role: 'user',
-        content: `Generate website content for this business. Return a JSON object with exactly these fields:
+        content: `Generate compelling, specific website copy for this local business. The copy must feel written FOR this specific business — not a template. Reference the city, use industry-specific language, give this business a distinct voice.
+
+Avoid filler phrases like "committed to excellence", "quality you can trust", or "serving the community". Write copy that makes a real customer want to visit or call.
+
+Return a JSON object with exactly these fields:
 {
-  "tagline": "short punchy tagline under 10 words",
-  "heroHeadline": "welcoming headline specific to their category",
-  "heroSubtext": "2 sentences describing what makes this business worth visiting",
-  "aboutTitle": "About Us title",
-  "aboutBody": "3-4 sentence paragraph about the business",
+  "tagline": "punchy tagline under 8 words — specific to their type and city",
+  "heroHeadline": "welcoming headline that speaks to their ideal customer — not generic",
+  "heroSubtext": "2 sentences that paint a picture of the experience — sensory details, no generic promises",
+  "aboutTitle": "About section title",
+  "aboutBody": "3-4 sentences — reference ${cityName}, their specialty, what sets them apart from chains",
   "servicesTitle": "Services section title",
-  "services": [{ "title": "service name", "description": "one sentence" }],
-  "ctaHeadline": "call-to-action headline",
-  "ctaSubtext": "one sentence encouraging contact",
-  "metaTitle": "SEO page title under 60 chars",
-  "metaDescription": "SEO meta description under 155 chars"
+  "services": [{ "title": "service name", "description": "one specific sentence — mention technique, outcome, or a detail showing real expertise" }],
+  "ctaHeadline": "action-oriented headline with mild urgency",
+  "ctaSubtext": "one sentence with a specific benefit or reason to act",
+  "metaTitle": "SEO title under 60 chars — include business name and city",
+  "metaDescription": "SEO description under 155 chars — include category and city keywords"
 }
-Services: 4-6 items realistic for this category.
+
+Services: 4-6 items realistic for this exact business type. Each description should include a specific detail showing real industry knowledge.
 
 Business: ${lead.name}
 Category: ${lead.category}
-Address: ${lead.address}
+City: ${cityName}
+Full Address: ${lead.address}
 Phone: ${lead.phone || 'not provided'}
-Rating: ${lead.rating || 'unknown'} (${lead.reviewCount || 0} reviews)
-Summary: ${lead.summary || 'none'}`
+Google Rating: ${lead.rating || 'N/A'} stars (${lead.reviewCount || 0} reviews)
+${ratingNote}
+Google Summary: ${lead.summary || 'none provided'}`
       }]
     })
 
@@ -77,8 +116,10 @@ Summary: ${lead.summary || 'none'}`
     const raw = (block.type === 'text' ? block.text : '').trim()
     const aiContent = JSON.parse(raw.replace(/^```json\n?/, '').replace(/\n?```$/, ''))
 
-    // Build template
-    const templateName = getTemplate(lead.types || [lead.category])
+    const allTypes = lead.types?.length ? lead.types : [lead.category]
+    const templateName = getTemplate(allTypes)
+    const heroImageUrl = getHeroImage(allTypes)
+
     const templateData = {
       ...aiContent,
       name: lead.name, address: lead.address,
@@ -88,6 +129,7 @@ Summary: ${lead.summary || 'none'}`
       yelpUrl: null, year: new Date().getFullYear(),
       portalUrl: process.env.NEXT_PUBLIC_PORTAL_URL || 'https://mariettawebsites.vercel.app',
       slug,
+      heroImageUrl,
     }
     const html = renderSiteHtml(templateName, templateData)
     const css  = getTemplateCss(templateName)
@@ -104,13 +146,11 @@ Summary: ${lead.summary || 'none'}`
     const siteId     = netlifyData.id
     const netlifyUrl = `https://${netlifyData.subdomain}.netlify.app`
 
-    // Deploy
     const deployedUrl = await deployToNetlify(siteId, {
       '/index.html': Buffer.from(html, 'utf8'),
       '/style.css':  Buffer.from(css,  'utf8'),
     })
 
-    // Save to Supabase
     const dbRes = await fetch(`${SUPABASE_URL}/rest/v1/clients`, {
       method: 'POST',
       headers: {

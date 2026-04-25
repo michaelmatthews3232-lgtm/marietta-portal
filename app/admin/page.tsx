@@ -10,7 +10,7 @@ const supabase = createClient(
 
 interface Client {
   name: string; slug: string; netlifyUrl: string; address: string
-  phone: string; email: string; onboardedAt: string; status: string
+  phone: string; email: string; onboardedAt: string; status: string; referredBy?: string
 }
 
 interface Lead {
@@ -69,10 +69,12 @@ export default function AdminPage() {
   const [findError, setFindError]       = useState('')
   const [building, setBuilding]         = useState<string | null>(null)
   const [buildFeedback, setBuildFeedback] = useState<Record<string, string>>({})
+  const [adminEmail, setAdminEmail]     = useState('')
 
   useEffect(() => {
     supabase.auth.getUser().then(({ data }) => {
       if (!data.user) { router.push('/login'); return }
+      setAdminEmail(data.user.email || '')
       loadClients()
     })
   }, [])
@@ -90,7 +92,7 @@ export default function AdminPage() {
     setFeedback(f => ({ ...f, [slug]: '' }))
     const res = await fetch('/api/manage-client', {
       method: 'PATCH', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ slug, action, value })
+      body: JSON.stringify({ slug, action, value, referredBy: action === 'set_status' && value === 'paid' ? adminEmail : undefined })
     })
     const data = await res.json()
     setSaving(null)
@@ -201,6 +203,9 @@ export default function AdminPage() {
                           {lead.rating && <span style={s.leadMeta}>⭐ {lead.rating} ({lead.reviewCount})</span>}
                           {lead.summary && <span style={{ ...s.leadMeta, fontStyle: 'italic', color: '#6b7280' }}>"{lead.summary}"</span>}
                         </div>
+                        <p style={{ fontSize: '0.78rem', color: '#92400e', background: '#fef3c7', padding: '3px 8px', borderRadius: 4, marginTop: 6, display: 'inline-block' }}>
+                          ⚠ Google shows no website — verify before building
+                        </p>
                         {buildFeedback[lead.placeId] && (
                           <p style={{ fontSize: '0.82rem', marginTop: 6, color: buildFeedback[lead.placeId].startsWith('Error') ? '#ef4444' : '#166534', fontWeight: 500 }}>
                             {buildFeedback[lead.placeId]}
@@ -285,6 +290,7 @@ export default function AdminPage() {
                     <a href={client.netlifyUrl} target="_blank" rel="noopener" style={s.liveBtn}>View Site ↗</a>
                     <button onClick={() => router.push(`/dashboard?client=${client.slug}`)} style={s.editBtn}>Edit Site</button>
                     <span style={s.addedDate}>Added {new Date(client.onboardedAt).toLocaleDateString()}</span>
+                    {client.referredBy && <span style={s.addedDate}>Referred by: {client.referredBy}</span>}
                   </div>
 
                   {isOpen && (
