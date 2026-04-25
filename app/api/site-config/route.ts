@@ -5,6 +5,7 @@ const ADMIN_EMAILS = (process.env.ADMIN_EMAILS || process.env.ADMIN_EMAIL || 'mi
   .split(',').map(e => e.trim().toLowerCase())
 
 export async function GET(req: NextRequest) {
+  try {
   const email = req.nextUrl.searchParams.get('email')
   const slug  = req.nextUrl.searchParams.get('slug')
   const admin = req.nextUrl.searchParams.get('admin')
@@ -39,6 +40,10 @@ export async function GET(req: NextRequest) {
   }
 
   return NextResponse.json({ error: 'Provide email or slug' }, { status: 400 })
+  } catch (err: unknown) {
+    const msg = err instanceof Error ? err.message : String(err)
+    return NextResponse.json({ error: msg, supabaseUrl: process.env.NEXT_PUBLIC_SUPABASE_URL || 'MISSING' }, { status: 500 })
+  }
 }
 
 function formatRecord(record: ReturnType<typeof Object.assign>) {
