@@ -112,6 +112,7 @@ export default function AdminPage() {
   const [customHtml, setCustomHtml]     = useState<Record<string, string>>({})
   const [customCss, setCustomCss]       = useState<Record<string, string>>({})
   const [pushingCode, setPushingCode]   = useState<string | null>(null)
+  const [refreshing, setRefreshing]     = useState<string | null>(null)
 
   useEffect(() => {
     supabase.auth.getUser().then(({ data }) => {
@@ -181,6 +182,30 @@ export default function AdminPage() {
   async function handleLogout() {
     await supabase.auth.signOut()
     router.push('/login')
+  }
+
+  async function refreshFromGoogle(slug: string) {
+    setRefreshing(slug)
+    setFeedback(f => ({ ...f, [slug]: '' }))
+    const res = await fetch('/api/refresh-from-google', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ slug })
+    })
+    const data = await res.json()
+    setRefreshing(null)
+    if (data.success) {
+      const r = data.refreshed
+      const parts = []
+      if (r.reviews > 0)  parts.push(`${r.reviews} review${r.reviews !== 1 ? 's' : ''}`)
+      if (r.rating)        parts.push(`${r.rating}★ rating`)
+      if (r.reviewCount)   parts.push(`${r.reviewCount} total reviews`)
+      if (r.phone)         parts.push('phone')
+      if (r.hours)         parts.push('hours')
+      setFeedback(f => ({ ...f, [slug]: `Refreshed from Google ✓  —  updated: ${parts.join(', ') || 'no changes'}` }))
+      loadClients()
+    } else {
+      setFeedback(f => ({ ...f, [slug]: `Refresh error: ${data.error}` }))
+    }
   }
 
   async function getSource(slug: string) {
@@ -396,6 +421,12 @@ export default function AdminPage() {
                   <div style={s.quickActions}>
                     <a href={client.netlifyUrl} target="_blank" rel="noopener" style={s.liveBtn}>View Site ↗</a>
                     <button onClick={() => router.push(`/dashboard?client=${client.slug}`)} style={s.editBtn}>Edit Site</button>
+                    <button
+                      onClick={() => refreshFromGoogle(client.slug)}
+                      disabled={refreshing === client.slug}
+                      style={{ ...s.editBtn, background: '#2e7d9e', opacity: refreshing === client.slug ? 0.6 : 1 }}>
+                      {refreshing === client.slug ? '↻ Refreshing…' : '↻ Refresh from Google'}
+                    </button>
                     <span style={s.addedDate}>Added {new Date(client.onboardedAt).toLocaleDateString()}</span>
                     {client.referredBy && <span style={s.addedDate}>Referred by: {client.referredBy}</span>}
                   </div>
