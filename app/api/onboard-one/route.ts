@@ -123,6 +123,7 @@ Google Summary: ${lead.summary || 'none provided'}`
     const templateData = {
       ...aiContent,
       name: lead.name, address: lead.address,
+      addressEncoded: encodeURIComponent(lead.address || ''),
       phone: lead.phone || '', email: lead.email || '',
       hours: lead.hours || [], rating: lead.rating || null,
       reviewCount: lead.reviewCount || 0, socialProfiles: {},

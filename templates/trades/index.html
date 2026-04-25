@@ -55,7 +55,11 @@
         {{/if}}
       </div>
       <div class="about-img">
-        <div class="img-placeholder">📍 {{address}}</div>
+        <iframe
+          src="https://maps.google.com/maps?q={{addressEncoded}}&output=embed&z=15"
+          width="100%" height="380" style="border:0;border-radius:12px;"
+          allowfullscreen loading="lazy" referrerpolicy="no-referrer-when-downgrade">
+        </iframe>
       </div>
     </div>
   </section>
