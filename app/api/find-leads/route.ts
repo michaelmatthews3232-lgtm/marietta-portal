@@ -21,13 +21,24 @@ export async function GET(req: NextRequest) {
   for (const place of (searchData.results || [])) {
     if (place.business_status !== 'OPERATIONAL') continue
 
-    const detailUrl = `https://maps.googleapis.com/maps/api/place/details/json?key=${API_KEY}&place_id=${place.place_id}&fields=name,formatted_address,formatted_phone_number,website,opening_hours,rating,user_ratings_total,types,url,editorial_summary`
+    const detailUrl = `https://maps.googleapis.com/maps/api/place/details/json?key=${API_KEY}&place_id=${place.place_id}&fields=name,formatted_address,formatted_phone_number,website,opening_hours,rating,user_ratings_total,types,url,editorial_summary,reviews`
     const detailRes  = await fetch(detailUrl)
     const detailData = await detailRes.json()
     if (detailData.status !== 'OK') continue
 
     const d = detailData.result
     if (d.website) continue // skip businesses that already have a website
+
+    const rawReviews: Array<{author_name?: string; rating?: number; text?: string; relative_time_description?: string}> = d.reviews || []
+    const reviews = rawReviews
+      .filter(r => r.text?.trim())
+      .slice(0, 5)
+      .map(r => ({
+        author: r.author_name || 'Google Reviewer',
+        text:   r.text || '',
+        stars:  '★'.repeat(Math.round(r.rating || 5)).padEnd(5, '☆'),
+        time:   r.relative_time_description || '',
+      }))
 
     leads.push({
       placeId:     place.place_id,
@@ -41,6 +52,7 @@ export async function GET(req: NextRequest) {
       googleUrl:   d.url,
       summary:     d.editorial_summary?.overview || null,
       category:    type,
+      reviews,
     })
   }
 

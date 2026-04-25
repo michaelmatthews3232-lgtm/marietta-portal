@@ -19,6 +19,7 @@
       <ul class="nav-links">
         <li><a href="#about">About</a></li>
         <li><a href="#services">Services</a></li>
+        {{#if reviews}}<li><a href="#reviews">Reviews</a></li>{{/if}}
         <li><a href="#contact">Contact</a></li>
         <li><a href="tel:{{phone}}" class="btn-outline">Call Now</a></li>
       </ul>
@@ -80,6 +81,25 @@
       </div>
     </div>
   </section>
+
+  <!-- REVIEWS -->
+  {{#if reviews}}
+  <section class="reviews section" id="reviews">
+    <div class="container">
+      <span class="section-label">Customer Reviews</span>
+      <h2>What Our Customers Say</h2>
+      <div class="reviews-grid">
+        {{#each reviews}}
+        <div class="review-card">
+          <div class="review-stars">{{this.stars}}</div>
+          <p class="review-text">&#8220;{{this.text}}&#8221;</p>
+          <div class="review-author">— {{this.author}} &middot; {{this.time}}</div>
+        </div>
+        {{/each}}
+      </div>
+    </div>
+  </section>
+  {{/if}}
 
   <!-- CTA BANNER -->
   <section class="cta-banner">

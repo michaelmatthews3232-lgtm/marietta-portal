@@ -85,6 +85,8 @@ export function buildTemplateData(
     year:           new Date().getFullYear(),
     portalUrl:      process.env.NEXT_PUBLIC_PORTAL_URL || 'https://mariettawebsites.vercel.app',
     slug:           lead.slug,
+    reviews: ((lead.reviews as Array<{author?: string; text?: string; stars?: string; time?: string}>) || [])
+      .filter(r => r.text?.trim()),
   }
 }
 
@@ -103,7 +105,8 @@ function renderTemplate(html: string, data: Record<string, unknown>): string {
   // {{#if key}} ... {{/if}}
   html = html.replace(/\{\{#if ([\w.]+)\}\}([\s\S]*?)\{\{\/if\}\}/g, (_, key, inner) => {
     const val = resolvePath(data, key)
-    return val ? inner : ''
+    const truthy = Array.isArray(val) ? val.length > 0 : !!val
+    return truthy ? inner : ''
   })
 
   // {{#each array}} ... {{/each}}
