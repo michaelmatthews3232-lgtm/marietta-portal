@@ -106,6 +106,12 @@ export default function AdminPage() {
   const [adminEmail, setAdminEmail]     = useState('')
   const [showArchived, setShowArchived] = useState(false)
   const [heroInputs, setHeroInputs]     = useState<Record<string, string>>({})
+  const [sourceCode, setSourceCode]     = useState<Record<string, {html: string, css: string}>>({})
+  const [sourceFetching, setSourceFetching] = useState<string | null>(null)
+  const [showPushCode, setShowPushCode] = useState<string | null>(null)
+  const [customHtml, setCustomHtml]     = useState<Record<string, string>>({})
+  const [customCss, setCustomCss]       = useState<Record<string, string>>({})
+  const [pushingCode, setPushingCode]   = useState<string | null>(null)
 
   useEffect(() => {
     supabase.auth.getUser().then(({ data }) => {
@@ -175,6 +181,56 @@ export default function AdminPage() {
   async function handleLogout() {
     await supabase.auth.signOut()
     router.push('/login')
+  }
+
+  async function getSource(slug: string) {
+    if (sourceCode[slug]) return sourceCode[slug]
+    setSourceFetching(slug)
+    const res = await fetch(`/api/site-source?slug=${slug}`)
+    const data = await res.json()
+    setSourceFetching(null)
+    if (data.html) {
+      setSourceCode(x => ({ ...x, [slug]: data }))
+      return data as { html: string; css: string }
+    }
+    return null
+  }
+
+  async function copySource(slug: string, type: 'html' | 'css') {
+    const src = await getSource(slug)
+    if (!src) return
+    await navigator.clipboard.writeText(type === 'html' ? src.html : src.css)
+    setFeedback(f => ({ ...f, [slug]: `${type.toUpperCase()} copied to clipboard ✓` }))
+    setTimeout(() => setFeedback(f => ({ ...f, [slug]: '' })), 3000)
+  }
+
+  async function loadSourceIntoEditor(slug: string) {
+    const src = await getSource(slug)
+    if (!src) return
+    setCustomHtml(x => ({ ...x, [slug]: src.html }))
+    setCustomCss(x => ({ ...x, [slug]: src.css }))
+    setShowPushCode(slug)
+  }
+
+  async function pushCustomCode(slug: string) {
+    const html = customHtml[slug]?.trim()
+    const css  = customCss[slug]?.trim()
+    if (!html) return
+    setPushingCode(slug)
+    const res = await fetch('/api/push-code', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ slug, html, css: css || '' })
+    })
+    const data = await res.json()
+    setPushingCode(null)
+    if (data.success) {
+      setFeedback(f => ({ ...f, [slug]: 'Custom code deployed live ✓' }))
+      setShowPushCode(null)
+      loadClients()
+    } else {
+      setFeedback(f => ({ ...f, [slug]: `Deploy error: ${data.error}` }))
+    }
   }
 
   const isNotInterested = (c: Client) => c.status === 'not_interested' || c.status === 'cancelled'
@@ -474,8 +530,59 @@ export default function AdminPage() {
                         </div>
                       </div>
 
+                      {/* Source Code */}
+                      <div style={s.section}>
+                        <h3 style={s.sectionTitle}>Source Code</h3>
+                        <p style={s.sectionDesc}>Copy the full HTML or CSS to edit in VS Code or Claude.ai, then push your changes live.</p>
+                        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+                          <button onClick={() => copySource(client.slug, 'html')}
+                            disabled={sourceFetching === client.slug}
+                            style={s.actionBtn}>
+                            {sourceFetching === client.slug ? 'Loading…' : '📋 Copy HTML'}
+                          </button>
+                          <button onClick={() => copySource(client.slug, 'css')}
+                            disabled={sourceFetching === client.slug}
+                            style={s.actionBtn}>
+                            {sourceFetching === client.slug ? 'Loading…' : '📋 Copy CSS'}
+                          </button>
+                          <button
+                            onClick={() => showPushCode === client.slug ? setShowPushCode(null) : loadSourceIntoEditor(client.slug)}
+                            disabled={sourceFetching === client.slug}
+                            style={{ ...s.actionBtn, background: showPushCode === client.slug ? '#6b7280' : '#1a1a1a' }}>
+                            {sourceFetching === client.slug ? 'Loading…' : showPushCode === client.slug ? '✕ Close Editor' : '✏ Edit & Push Code'}
+                          </button>
+                        </div>
+
+                        {showPushCode === client.slug && (
+                          <div style={{ marginTop: 14, display: 'flex', flexDirection: 'column', gap: 12 }}>
+                            <div>
+                              <label style={{ ...s.sectionDesc, fontWeight: 600, display: 'block', marginBottom: 4 }}>HTML</label>
+                              <textarea
+                                value={customHtml[client.slug] || ''}
+                                onChange={e => setCustomHtml(x => ({ ...x, [client.slug]: e.target.value }))}
+                                style={{ width: '100%', minHeight: 300, padding: '10px 12px', fontFamily: 'monospace', fontSize: '0.78rem', border: '1px solid #e5e7eb', borderRadius: 8, resize: 'vertical', outline: 'none', boxSizing: 'border-box', lineHeight: 1.5 }}
+                              />
+                            </div>
+                            <div>
+                              <label style={{ ...s.sectionDesc, fontWeight: 600, display: 'block', marginBottom: 4 }}>CSS</label>
+                              <textarea
+                                value={customCss[client.slug] || ''}
+                                onChange={e => setCustomCss(x => ({ ...x, [client.slug]: e.target.value }))}
+                                style={{ width: '100%', minHeight: 200, padding: '10px 12px', fontFamily: 'monospace', fontSize: '0.78rem', border: '1px solid #e5e7eb', borderRadius: 8, resize: 'vertical', outline: 'none', boxSizing: 'border-box', lineHeight: 1.5 }}
+                              />
+                            </div>
+                            <button
+                              onClick={() => pushCustomCode(client.slug)}
+                              disabled={pushingCode === client.slug || !customHtml[client.slug]?.trim()}
+                              style={{ ...s.actionBtn, background: '#166534', opacity: (pushingCode === client.slug || !customHtml[client.slug]?.trim()) ? 0.5 : 1, alignSelf: 'flex-start' }}>
+                              {pushingCode === client.slug ? 'Deploying…' : '🚀 Deploy Custom Code Live'}
+                            </button>
+                          </div>
+                        )}
+                      </div>
+
                       {feedback[client.slug] && (
-                        <div style={{ ...s.feedback, color: feedback[client.slug].startsWith('Error') ? '#ef4444' : '#166534', background: feedback[client.slug].startsWith('Error') ? '#fee2e2' : '#dcfce7' }}>
+                        <div style={{ ...s.feedback, color: feedback[client.slug].startsWith('Error') || feedback[client.slug].startsWith('Deploy error') ? '#ef4444' : '#166534', background: feedback[client.slug].startsWith('Error') || feedback[client.slug].startsWith('Deploy error') ? '#fee2e2' : '#dcfce7' }}>
                           {feedback[client.slug]}
                         </div>
                       )}
