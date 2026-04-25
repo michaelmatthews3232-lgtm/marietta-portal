@@ -265,6 +265,7 @@ export default function AdminPage() {
 
   async function generatePaymentLink(slug: string) {
     setGeneratingLink(slug)
+    setPaymentLink(x => ({ ...x, [slug]: '' }))
     const res = await fetch('/api/create-checkout', {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ slug })
@@ -273,8 +274,10 @@ export default function AdminPage() {
     setGeneratingLink(null)
     if (data.url) {
       setPaymentLink(x => ({ ...x, [slug]: data.url }))
+      window.open(data.url, '_blank')
     } else {
-      setFeedback(f => ({ ...f, [slug]: `Payment link error: ${data.error}` }))
+      setPaymentLink(x => { const n = { ...x }; delete n[slug]; return n })
+      alert(`Payment link error: ${data.error}`)
     }
   }
 

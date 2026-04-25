@@ -16,8 +16,7 @@ export async function POST(req: NextRequest) {
       mode: 'subscription',
       customer_email: record.email || undefined,
       line_items: [
-        { price: SETUP_FEE_PRICE_ID, quantity: 1 },
-        { price: MONTHLY_PRICE_ID,   quantity: 1 },
+        { price: MONTHLY_PRICE_ID, quantity: 1 },
       ],
       subscription_data: { metadata: { slug } },
       metadata: { slug },
