@@ -1,5 +1,5 @@
 'use client'
-import { useEffect, useState } from 'react'
+import { useEffect, useState, type ReactNode } from 'react'
 import { createClient } from '@supabase/supabase-js'
 import { useRouter } from 'next/navigation'
 
@@ -624,7 +624,7 @@ function ScriptModal({ lead, onClose }: { lead: CallerLead; onClose: () => void 
   )
 }
 
-function Section({ title, color, bg, children }: { title: string; color: string; bg: string; children: React.ReactNode }) {
+function Section({ title, color, bg, children }: { title: string; color: string; bg: string; children: ReactNode }) {
   return (
     <div style={{ background: bg, borderLeft: `3px solid ${color}`, borderRadius: '0 8px 8px 0', padding: '12px 16px', marginBottom: 12 }}>
       <p style={{ margin: '0 0 8px', fontWeight: 700, fontSize: '0.82rem', color, letterSpacing: '0.04em' }}>{title}</p>
